@@ -62,14 +62,25 @@ squares = ImageSearch()
 neural_net = ApplyNetwork(network_size, data.weights, data.biases)
 nums = []
 # output = neural_net.calculate(picture)
-for pic in squares.output:
-        pic = pic[3:31, 3:31]
-        check = ((pic >= 220).sum() == pic.size)
-        if check:
+images = squares.output[0]
+empties = squares.output[1]
+outs = []
+for e, pic in zip(empties, images):
+        if e == 0:
                 nums.append(0)
+                outs.append([0])
         else:
-                pic = cv2.bitwise_not(pic) / 255
                 pic = pic.flatten()
                 output = neural_net.calculate(pic)
                 nums.append(np.argmax(neural_net.output))
-print(np.reshape(nums, (9, 9)) - grid)
+                outs.append(neural_net.output)
+print('------------------------')
+print('Original Grid')
+print('------------------------')
+print(np.array(grid))
+print('------------------------')
+
+print('Detected Grid')
+print('------------------------')
+
+print(np.reshape(nums, (9, 9)))

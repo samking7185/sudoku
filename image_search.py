@@ -91,6 +91,7 @@ class ImageSearch:
         self.gridsearch()
         self.crop_image()
         self.process_image()
+        self.prepare_image()
 
     def gridsearch(self):
         lines = self.lines
@@ -126,6 +127,7 @@ class ImageSearch:
             bw_image_matrix.append(bw_image)
         bw_image_matrix = np.array(bw_image_matrix, dtype=object)
         self.output = bw_image_matrix
+
         # bw_image_matrix = bw_image_matrix.reshape((9,9))
         # fig = plt.figure(figsize=(9, 9))
         # n = 1
@@ -138,7 +140,22 @@ class ImageSearch:
         # plt.show()
         # cv2.imshow('Cropped Image', bw_image_matrix)
         # cv2.waitKey(0)
-        r = 1
+        # r = 1
+
+    def prepare_image(self):
+        bw_image_matrix = self.output
+        empty_array = np.ones_like(bw_image_matrix)
+        inv_image_matrix = np.zeros_like(bw_image_matrix)
+        for idx, pic in enumerate(bw_image_matrix):
+            pic = pic[3:31, 3:31]
+            grad = np.max(np.abs(np.gradient(pic)))
+            if grad < 20:
+                empty_array[idx] = 0
+            inv_image_matrix[idx] = cv2.bitwise_not(pic) / 255
+        self.output = [inv_image_matrix, empty_array]
+
+
+
 
 
 
