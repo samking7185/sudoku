@@ -54,14 +54,15 @@ grid = [
 # cv2.imshow('hough.jpg', np.reshape(picture, (28,28)))
 # cv2.waitKey(0)
 
-network_size = [784, 30, 10]
-files = ["Biases1.txt", "Biases2.txt", "Weights1.txt", "Weights2.txt"]
+network_size = [784, 60, 30, 10]
+files = ["Biases1.txt", "Biases2.txt", "Biases3.txt", "Weights1.txt", "Weights2.txt", "Weights3.txt"]
 data = OpenFile(files)
 
 squares = ImageSearch()
 neural_net = ApplyNetwork(network_size, data.weights, data.biases)
 nums = []
 # output = neural_net.calculate(picture)
+
 images = squares.output[0]
 empties = squares.output[1]
 outs = []
@@ -74,13 +75,20 @@ for e, pic in zip(empties, images):
                 output = neural_net.calculate(pic)
                 nums.append(np.argmax(neural_net.output))
                 outs.append(neural_net.output)
-print('------------------------')
-print('Original Grid')
-print('------------------------')
-print(np.array(grid))
-print('------------------------')
 
-print('Detected Grid')
-print('------------------------')
+# Code to print actual vs. detected image
+# print('------------------------')
+# print('Original Grid')
+# print('------------------------')
+# print(np.array(grid))
+# print('------------------------')
+#
+# print('Detected Grid')
+# print('------------------------')
+#
+# print(np.reshape(nums, (9, 9)))
 
-print(np.reshape(nums, (9, 9)))
+grid = np.reshape(nums, (9, 9))
+solution = Solver(grid.tolist())
+print('-------SOLVED--------')
+print(np.matrix(solution.grid))
