@@ -11,6 +11,7 @@ weights: Weights of each layer of network, [W1, W2, ... , Wout]
 biases: Biases of each layer of network, [B1, B2, ... , Bout]
 """
 import numpy as np
+import math
 
 
 class ApplyNetwork:
@@ -30,7 +31,8 @@ class ApplyNetwork:
             layer_list = np.zeros(dimensions[i+1])
             for idx, (w, b) in enumerate(zip(weights[i], biases[i])):
                 layer = np.sum(w * inputs) + b
-                layer_list[idx] = 1 / (1 + np.exp(-layer))
+                layer_list[idx] = 1 / (1 + math.exp(float(-layer)))
+
             inputs = layer_list
         self.output = inputs
 

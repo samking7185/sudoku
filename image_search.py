@@ -5,12 +5,14 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
+
 class ImageSearch:
     def __init__(self, image=None):
 
         self.coordinates = None
         self.lines = None
         self.image_matrix = None
+        self.output = None
         if image:
             self.image = image
         else:
@@ -123,17 +125,17 @@ class ImageSearch:
             bw_image = cv2.cvtColor(image_matrix[i], cv2.COLOR_BGR2GRAY)
             bw_image_matrix.append(bw_image)
         bw_image_matrix = np.array(bw_image_matrix, dtype=object)
-        bw_image_matrix = bw_image_matrix.reshape((9,9))
-
-        fig = plt.figure(figsize=(9, 9))
-        n = 1
-        for j in range(9):
-            for i in range(9):
-                fig.add_subplot(9,9,n)
-                plt.imshow(bw_image_matrix[j][i])
-                plt.axis('off')
-                n += 1
-        plt.show()
+        self.output = bw_image_matrix
+        # bw_image_matrix = bw_image_matrix.reshape((9,9))
+        # fig = plt.figure(figsize=(9, 9))
+        # n = 1
+        # for j in range(9):
+        #     for i in range(9):
+        #         fig.add_subplot(9,9,n)
+        #         plt.imshow(bw_image_matrix[j][i])
+        #         plt.axis('off')
+        #         n += 1
+        # plt.show()
         # cv2.imshow('Cropped Image', bw_image_matrix)
         # cv2.waitKey(0)
         r = 1

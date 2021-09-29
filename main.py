@@ -7,6 +7,17 @@ from image_search import ImageSearch
 import load_mnist
 import cv2
 
+grid = [
+        [0, 8, 4, 0, 2, 9, 5, 0, 1],
+        [5, 7, 0, 0, 0, 1, 0, 3, 0],
+        [6, 0, 2, 0, 0, 0, 0, 0, 0],
+        [0, 3, 0, 5, 0, 0, 9, 6, 0],
+        [0, 0, 0, 0, 3, 0, 1, 0, 4],
+        [2, 0, 6, 9, 0, 0, 0, 0, 0],
+        [0, 5, 0, 0, 0, 0, 0, 0, 0],
+        [7, 0, 0, 0, 0, 3, 0, 0, 6],
+        [0, 0, 1, 0, 0, 0, 0, 0, 0]
+]
 # grid = [
 #         [5, 3, 0, 0, 7, 0, 0, 0, 0],
 #         [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -40,14 +51,25 @@ import cv2
 # training_data = list(training_data)
 # picture = training_data[2]
 # picture = picture[0]
-#
 # cv2.imshow('hough.jpg', np.reshape(picture, (28,28)))
 # cv2.waitKey(0)
-# network_size = [784, 30, 10]
-# files = ["Biases1.txt", "Biases2.txt", "Weights1.txt", "Weights2.txt"]
-# data = OpenFile(files)
-#
-# neural_net = ApplyNetwork(network_size, data.weights, data.biases)
+
+network_size = [784, 30, 10]
+files = ["Biases1.txt", "Biases2.txt", "Weights1.txt", "Weights2.txt"]
+data = OpenFile(files)
+
+squares = ImageSearch()
+neural_net = ApplyNetwork(network_size, data.weights, data.biases)
+nums = []
 # output = neural_net.calculate(picture)
-# print(np.argmax(neural_net.output))
-picture = ImageSearch()
+for pic in squares.output:
+        pic = pic[3:31, 3:31]
+        check = ((pic >= 220).sum() == pic.size)
+        if check:
+                nums.append(0)
+        else:
+                pic = cv2.bitwise_not(pic) / 255
+                pic = pic.flatten()
+                output = neural_net.calculate(pic)
+                nums.append(np.argmax(neural_net.output))
+print(np.reshape(nums, (9, 9)) - grid)
