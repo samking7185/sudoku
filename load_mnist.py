@@ -13,6 +13,7 @@ import gzip
 import numpy as np
 import os
 
+
 def load_data():
     """Return the MNIST data as a tuple containing the training data,
     the validation data, and the test data.
