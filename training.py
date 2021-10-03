@@ -1,11 +1,17 @@
 import numpy as np
 import load_mnist
+from features import *
 
 training_data, validation_data, test_data = load_mnist.load_data_wrapper()
 training_data = list(training_data)
 test_data = list(test_data)
 validation_data = list(validation_data)
 
+image = training_data[15][0]
+image_size = [20,20]
+new_image = extraction(image, image_size)
+# gradI = transition(new_image)
+skel = skel(new_image)
 # This is the training for the neural network
 # net = Network([784, 60, 30, 10])
 #
