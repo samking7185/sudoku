@@ -5,7 +5,35 @@ from fuzzy import Membership, MembershipArray, Rulebase, Defuzz
 
 class FIS:
     def __init__(self, params):
+        """
+        Class to create a 2 input 1 output fuzzy inference system
+        Calls fuzzy tool from fuzzy.py
 
+        User instantiates the class with "params" which is a dictionary
+
+        params = {
+        "MF1": [(0, 0, 2), (1, 2, 4, 4)],
+        "MF2": [(0, 0, 2), (1, 2, 4, 4)],
+        "OUT": [(0, 0, 1), (0, 1, 1)],
+        "RULES": [0, 1, 0, 1],
+        "BOUNDS": [0, 1]
+        }
+
+        The membership functions take the form of tuples (x1, x2, x3, x4)
+        2 values uses a gaussian membership function
+        3 values uses a triangular membership function
+        4 values uses a trapezoidal membership function
+
+        The rules take the form of integers, rules must be specified for all combination of inputs
+        The integer delineating which output membership function corresponds to the combination of inputs
+        There needs to be nMF1 x nMF2 rules
+
+        For 2 inputs membership functions:
+        The outputs are evaluated as [MF1,1 and MF2,1]  [MF1,1 and MF2,2]  [MF1,2 and MF2,1]  [MF1,2 and MF2,2]
+
+        For 3 inputs membership functions:
+        The outputs are evaluated as [MF1,1 and MF2,1]  [MF1,1 and MF2,2]  [MF1,1 and MF2,3]  etc.
+        """
         self.params = params
         in1MF = []
         in2MF = []
@@ -28,11 +56,7 @@ class FIS:
 
     def compute(self, in1: float, in2: float):
         params = self.params
-        # rules = self.rules
         Fr = self.rulebase
-        # in1MF = self.mf1
-        # in2MF = self.mf2
-        # outMF = self.out
 
         input1 = []
         input2 = []

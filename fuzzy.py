@@ -4,6 +4,13 @@ from math import exp
 
 
 class Membership:
+    """
+    This class instantiates membership function objects that can then be used to evaluate inputs
+    The purpose of this class is to calculate the output of a single value against a membership function
+
+    The user needs to specify params in the form of a list of tuples
+    :param params : Membership function values, [(MF11, MF12, MF13), (MF21, MF22, MF23, MF24), ...]
+    """
     def __init__(self, params: list):
         self.params = params
 
@@ -64,6 +71,14 @@ class Membership:
 
 
 class MembershipArray:
+    """
+    This class instantiates membership function objects that can then be used to evaluate inputs
+    The purpose of this class is to calculate an array of outputs between the bounds of the system
+
+    The user needs to specify params in the form of a list of tuples
+    : param params : Membership function values, [(MF11, MF12, MF13), (MF21, MF22, MF23, MF24)]
+    : param xvals : an array of values between the upper and lower bound of the system
+    """
     def __init__(self, params: list, xvals):
         self.params = params
         self.xvals = xvals
