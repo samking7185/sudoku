@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 import scipy.ndimage.morphology as morph
+from fuzzy_struc import FIS
 
 """
 features.py
@@ -74,8 +75,21 @@ def skel(image):
     nonzeros = np.nonzero(D)
     rows = nonzeros[0]
     cols = nonzeros[1]
+
+    parameters = {
+        "MF1": [(0.1, 0)],
+        "MF2": [(0.1, 0)],
+        "OUT": [(0, 0, 0.7), (0.1, 1, 1)],
+        "RULES": [0],
+        "BOUNDS": [0, 1]
+    }
+
+    gFIS = FIS
     for row, col in zip(rows, cols):
         current = D[row, col]
+        in1 = grad[0][row-1, col] + grad[0][row+1, col]
+        in2 = grad[1][row, col-1] + grad[1][row, col+1]
+        s =  1
     s = 1
 
 
