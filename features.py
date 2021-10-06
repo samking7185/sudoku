@@ -84,13 +84,6 @@ def skel(image):
         "BOUNDS": [0, 1]
     }
 
-    gFIS = FIS
-    for row, col in zip(rows, cols):
-        current = D[row, col]
-        in1 = grad[0][row-1, col] + grad[0][row+1, col]
-        in2 = grad[1][row, col-1] + grad[1][row, col+1]
-        s =  1
-    s = 1
 
 
 
