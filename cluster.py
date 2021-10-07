@@ -3,6 +3,9 @@ import load_mnist
 import cv2
 from features import *
 import matplotlib.pyplot as plt
+import time
+
+tic = time.perf_counter()
 
 
 training_data, validation_data, test_data = load_mnist.load_data_wrapper()
@@ -72,8 +75,8 @@ for j,(cls,bar) in enumerate(zip(cluster_assign, cluster_dist_bar)):
         cls_dbar = np.mean(cls_dist)
         cluster_score[j][i] = 1 - m / cls_dbar
 
-s = 1
-
+toc = time.perf_counter()
+print(toc-tic)
 # print(C)
 # plt.scatter(bigdata[:,0], bigdata[:,1])
 # plt.scatter(Vh[:,0], Vh[:,1])
