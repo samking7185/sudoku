@@ -92,4 +92,5 @@ for k in range(min_cluster, max_cluster, 1):
         data_full[didx][keys].update(mu=Mu[i], cluster=index_vals[i], shsc=cluster_score[index_vals[i]][ii])
 
 toc = time.perf_counter()
-print(toc-tic)
+print('With Library 1.0990187  seconds')
+print(f'Without Library {toc - tic} seconds')
