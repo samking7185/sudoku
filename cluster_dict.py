@@ -1,9 +1,12 @@
 import numpy as np
 import load_mnist
+import cv2
 from features import *
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import time
+from skimage.morphology import skeletonize
+from skimage.util import invert
 
 tic = time.perf_counter()
 
@@ -12,14 +15,21 @@ training_data = list(training_data)
 test_data = list(test_data)
 validation_data = list(validation_data)
 
-image = training_data[1][0]
-image_size = [20, 20]
-new_image = extraction(image, image_size)
+image = training_data[52][0]
+# image_size = [20, 20]
+# new_image = extraction(image, image_size)
+new_image = image.reshape((28,28))
 BW = cv2.threshold(new_image, 0.6, 1, cv2.THRESH_BINARY)
 BW = np.array(BW[1])
 bigdata = np.nonzero(BW)
 bigdata = np.stack(bigdata, axis=1)
 
+# M = cv2.moments(BW)
+# cX = int(M["m10"] / M["m00"])
+# cY = int(M["m01"] / M["m00"])
+# plt.imshow(BW)
+# plt.scatter(cX,cY,color='red')
+# plt.show()
 data_str = {}
 data_full = {}
 
@@ -27,16 +37,16 @@ n = len(bigdata)
 maxiter = 100
 max_cluster = 10
 min_cluster = 2
+fpc = 0
 
 for coord in bigdata:
     coord = tuple(coord)
-    data_str[coord] = {"cluster": 0, "mu": 0, "shsc": 0}
+    data_str[coord] = {"cluster_id": 0, "mu": 0}
 
-for j in range(max_cluster - min_cluster):
-    data_full[j] = deepcopy(data_str)
+for j in range(min_cluster, max_cluster, 1):
+    data_full[j] = {"pts": deepcopy(data_str), "fpc": 0, "center_xy": [], "loop_id": 0}
 
 for k in range(min_cluster, max_cluster, 1):
-    didx = k - min_cluster
     q = 2
     error = True
     error_val = 0.00001
@@ -52,8 +62,8 @@ for k in range(min_cluster, max_cluster, 1):
 
     index_vals = np.argmax(Mu, axis=1)
     cluster_assign = np.empty(k, dtype=object)
-    cluster_dist_bar = np.empty(k, dtype=object)
-    cluster_score = np.empty(k, dtype=object)
+    # cluster_dist_bar = np.empty(k, dtype=object)
+    # cluster_score = np.empty(k, dtype=object)
 
     for iteration in range(maxiter):
         Vhsq = np.power(Mu, q)
@@ -70,27 +80,120 @@ for k in range(min_cluster, max_cluster, 1):
 
         if np.absolute(np.linalg.norm(Mu.T - Mu_last)) < error_val:
             Mu = Mu.T
+            fpc = np.trace(np.transpose(Mu).dot(Mu)) / Mu.shape[0]
             break
         Mu = Mu.T
         Mu_last = Mu
 
-    for idx in range(k):
-        cluster_assign[idx] = bigdata[index_vals == idx]
-        cluster_dist = np.array([np.linalg.norm(cluster_assign[idx] - x, axis=1) for x in cluster_assign[idx]])
-        cluster_dist_bar[idx] = np.mean(cluster_dist, axis=1)
-
-    for j, (cls, bar) in enumerate(zip(cluster_assign, cluster_dist_bar)):
-        cluster_score[j] = np.zeros(len(cls))
-        for i, (x, m) in enumerate(zip(cls, bar)):
-            cls_dist = [np.mean(np.linalg.norm(y - x)) for y in cluster_assign if not np.array_equal(y, cls)]
-            cls_dbar = np.mean(cls_dist)
-            cluster_score[j][i] = 1 - m / cls_dbar
-
-    for keys in data_full[didx]:
+    # for idx in range(k):
+    #     cluster_assign[idx] = bigdata[index_vals == idx]
+        # cluster_dist = np.array([np.linalg.norm(cluster_assign[idx] - x, axis=1) for x in cluster_assign[idx]])
+        # cluster_dist_bar[idx] = np.mean(cluster_dist, axis=1)
+    #
+    # for j, (cls, bar) in enumerate(zip(cluster_assign, cluster_dist_bar)):
+    #     cluster_score[j] = np.zeros(len(cls))
+    #     for i, (x, m) in enumerate(zip(cls, bar)):
+    #         cls_dist = [np.mean(np.linalg.norm(y - x)) for y in cluster_assign if not np.array_equal(y, cls)]
+    #         cls_dbar = np.mean(cls_dist)
+    #         cluster_score[j][i] = 1 - m / cls_dbar
+    #
+    for keys in data_full[k]["pts"]:
         i = bigdata.tolist().index(list(keys))
-        ii = cluster_assign[index_vals[i]].tolist().index(list(keys))
-        data_full[didx][keys].update(mu=Mu[i], cluster=index_vals[i], shsc=cluster_score[index_vals[i]][ii])
+        # ii = cluster_assign[index_vals[i]].tolist().index(list(keys))
+        cid = np.argmax(Mu[i]) + 1
+        data_full[k]["pts"][keys].update(mu=Mu[i], cluster_id=cid)
 
-toc = time.perf_counter()
-print('With Library 1.0990187  seconds')
-print(f'Without Library {toc - tic} seconds')
+    data_full[k].update(fpc=fpc, center_xy=list(Vh))
+
+t1 = [data_full[keys]["fpc"] for keys in data_full]
+number = max_cluster-1
+cldata = data_full[number]
+climage = np.zeros_like(BW)
+for keys in cldata['pts']:
+    climage[keys] =  data_full[number]["pts"][keys]["cluster_id"]
+connect = []
+for i in range(0, climage.shape[0], 1):
+    for j in range(0, climage.shape[1], 1):
+        imbox = climage[i:i+2, j:j+2]
+        if np.sum(imbox):
+            if not np.any(imbox == 0):
+                if len(np.unique(imbox)) != 1:
+                    connect.append(np.sort(np.unique(imbox)))
+tconnect = np.asarray(connect, dtype=object)
+
+connect = []
+for idx, x in enumerate(tconnect):
+    if len(x) > 2:
+        sconnect = np.delete(tconnect, idx)
+        data_full[number]['loop_id'] = 1
+    else:
+        if x.tolist() not in connect:
+            connect.append(x.tolist())
+
+x = np.linspace(min_cluster, max_cluster, num=len(t1))
+
+# fig1 = plt.figure(1)
+# plt.plot(x, t1)
+
+# fig2 = plt.figure(2)
+# plt.imshow(BW)
+#
+#
+# for val in connect:
+#     num1 = int(val[0] - 1)
+#     num2 = int(val[1] - 1)
+#
+#     x1 = data_full[number]['center_xy'][num1]
+#     x2 = data_full[number]['center_xy'][num2]
+#     x1p = [round(num1, 0) for num1 in x1]
+#     x2p = [round(num2, 0) for num2 in x2]
+#     plt.plot([x1p[1], x2p[1]], [x1p[0], x2p[0]], color='red')
+#     print(x1, x2)
+# s = 1
+
+skeleton = skeletonize(BW)
+fig, axes = plt.subplots(nrows=1, ncols=3)
+
+ax = axes.ravel()
+
+ax[0].imshow(BW, aspect="auto")
+ax[0].axis('off')
+ax[0].set_title('original', fontsize=20)
+
+ax[1].imshow(skeleton, aspect="auto")
+ax[1].axis('off')
+ax[1].set_title('skeleton', fontsize=20)
+
+x11 = []
+x22 = []
+for val in connect:
+    num1 = int(val[0] - 1)
+    num2 = int(val[1] - 1)
+
+    x1 = data_full[number]['center_xy'][num1]
+    x2 = data_full[number]['center_xy'][num2]
+    x1p = [round(num1, 0) for num1 in x1]
+    x2p = [round(num2, 0) for num2 in x2]
+    ax[2].plot([x1p[1], x2p[1]], [x1p[0], x2p[0]], color='red')
+ax[2].set_title('FCM skeleton', fontsize=20)
+plt.gca().invert_yaxis()
+fig.tight_layout()
+plt.show()
+# plt.show()
+
+# plt.draw()
+# plt.pause(1)
+
+# toc = time.perf_counter()
+# print(f'{toc - tic} seconds')
+
+# number = input('Which value:')
+
+# plt.close(fig1)
+# plt.close(fig2)
+# fig3 = plt.figure(3)
+# points = np.array(data_full[int(number)]["center_xy"])
+# plt.gca().invert_yaxis()
+# plt.scatter(points[:,0], points[:,1], color='red')
+# plt.scatter(bigdata[:,0], bigdata[:,1])
+# plt.show()
